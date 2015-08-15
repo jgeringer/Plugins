@@ -5,6 +5,10 @@ Example:
 
 JS:
 $('.openModal').xModal({ width : "50%" });
+$(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html" });
+$(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html", effect:"vanish" });
+$(window).xModal({ html : "<p>In a Paragraph</p>" });
+$(window).xModal({ img : "http://lorempixel.com/output/technics-q-c-640-480-2.jpg" });
 
 HTML:
 <a href="#xModal-Inline" class="openModal">Open Modal</a>
@@ -21,22 +25,20 @@ Different Modals:
 x - Inline: Lives on the page hidden. $('.openModal').xModal({ width : "50%" });
 x - Dynamic Inline: Content lives in plugin call. $('.openModal').xModal({ headline:"Headline", description:"Description" });
 x - Script: Can be executed wholey in script. $(window).xModal({ headline:"Headline", description:"Description" });
-Ajax: Lives on another page. $('.openModal').xModal();
-Dynamic Ajax: Lives on another page. $(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html" });
-Html: Takes pure html
-
-
-  //need to cover these instances: #, #xxx, xxx
-  //first get type: dynamic (#), inline (#xxx), ajax (xxx)
-  //if only contains #, then type equals dynamic
-  //if contains # at the begining and is larger than 1 char, then type equals inline
-  //if doesnt start with #, the ajax.
+x - Ajax: Lives on another page. $('.openModal').xModal();
+x - Dynamic Ajax: Lives on another page. $(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html" });
+x - Html: Takes pure html
+IMG:
 
   Ideas:
   Pure HTML
   Multiple Modals
   Different effects (maybe css magictime or greensock)
   Ability to toggle all console.logs(create a function and output the consoles in there) for dev mode.
+  Extend it (add events)
+  Click outside and close
+  Loading icon
+  Center Image
 
 */
 
@@ -52,7 +54,9 @@ Html: Takes pure html
           width: "75%",
           headline: "",
           description: "",
-          href:""
+          href:"",
+          effect:"puff",
+          html:""
       }, options);
 
 
@@ -64,12 +68,12 @@ Html: Takes pure html
               console.log("this didn't come from an event!");
           }
 
-          $($mMarkup).removeClass('puffIn').addClass('puffOut');
+          $($mMarkup).removeClass(settings.effect+'In').addClass(settings.effect+'Out');
           setTimeout(function () {
-              $($mMarkup).removeClass('active').removeClass('puffOut');
+              $($mMarkup).removeClass('active').removeClass(settings.effect+'Out');
               $mContentContainer.empty();
               $($mMarkup).remove();
-          }, 500);
+          }, 1000);
 
           //unbind the keyup event
           $(document).off('keyup.xModalEscape');
@@ -123,27 +127,67 @@ Html: Takes pure html
         if(settings.description){
             $("<p>" + settings.description + "</p>").appendTo($mContent);
         }
+        if(settings.html){
+          $(settings.html).appendTo($mContent);
+          doStyling();
+        }
 
-        $mContent.prependTo($mContentContainer);
-        $mMarkup.appendTo('body');
+        if(settings.img){
 
-        var $mCH = $mContentContainer.height();
+          // console.log('loading...');
+          // $("<img src="+settings.img+">").on('load', function(){
+          //   console.log('loaded');
+          //     $(this).appendTo($mContent);
+          // });
 
-        $mInnerWrapper.find('.closeModal').remove();
-        $('<a class="closeModal icon-close"></a>').prependTo($mInnerWrapper);
-        $mInnerWrapper.width(settings.width);
-        $mInnerWrapper.height($mCH);
-        $mInnerWrapper.css({
-          'margin-top' : -($mCH/2) + 'px'
-        });
+          function loadSprite(src) {
+              var deferred = $.Deferred();
+              var sprite = new Image();
 
-        $($mMarkup).addClass('active').addClass('puffIn');
+              sprite.onload = function() {
+                  deferred.resolve();
+              };
+              sprite.src = src;
+              return deferred.promise();
+            }
 
-        bindEvents();
+            var loaders = [];
+
+            loaders.push(loadSprite(settings.img));
+
+            $.when.apply(null, loaders).done(function() {
+                // callback when everything was loaded
+                console.log('doneskies');
+                $("<img src="+settings.img+">").appendTo($mContent);
+                doStyling();
+            });
+
+        }
+
+        function doStyling(){
+          $mContent.prependTo($mContentContainer);
+          $mMarkup.appendTo('body');
+
+          var $mCH = $mContentContainer.height();
+
+          $mInnerWrapper.find('.closeModal').remove();
+          $('<a class="closeModal icon-close"></a>').prependTo($mInnerWrapper);
+          $mInnerWrapper.width(settings.width);
+          $mInnerWrapper.height($mCH);
+          $mInnerWrapper.css({
+            'margin-top' : -($mCH/2) + 'px'
+          });
+
+          $($mMarkup).addClass('active').addClass(settings.effect+'In');
+
+          bindEvents();
+        }
         return;
+
       }
 
       this.off('click.xModal').on('click.xModal', function (e) {
+        console.log('inside xmodal close')
           e.preventDefault();
           var $this = $(this),
               $modal = $this.attr('href');
@@ -185,7 +229,7 @@ Html: Takes pure html
             'margin-top' : -($mCH/2) + 'px'
           });
 
-          $($mMarkup).addClass('active').addClass('puffIn');
+          $($mMarkup).addClass('active').addClass(settings.effect+'In');
 
           bindEvents();
 

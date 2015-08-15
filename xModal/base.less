@@ -1,5 +1,6 @@
-// out: modals.css, sourcemap: true, compress: true
+// out: base.css, sourcemap: true, compress: true
 @import 'variables.less';
+@import 'xmodal.less';
 
 //Basic Styles:
 body{
@@ -24,10 +25,11 @@ body{
     height:100%;
     z-index:50;
     opacity:0;
-    background-color:rgba(220,220,220,.8);
+		// transition:background-color 1000ms;
     &:extend(.magictime);
     &.active{
         top:0;
+		    // background-color:rgba(255,255,255,.8);
     }
 
 		>*{
