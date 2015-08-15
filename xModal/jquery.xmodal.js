@@ -16,46 +16,181 @@ HTML:
         </div>
     </div>
 </div>
+
+Different Modals:
+x - Inline: Lives on the page hidden. $('.openModal').xModal({ width : "50%" });
+x - Dynamic Inline: Content lives in plugin call. $('.openModal').xModal({ headline:"Headline", description:"Description" });
+x - Script: Can be executed wholey in script. $(window).xModal({ headline:"Headline", description:"Description" });
+Ajax: Lives on another page. $('.openModal').xModal();
+Dynamic Ajax: Lives on another page. $(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html" });
+Html: Takes pure html
+
+
+  //need to cover these instances: #, #xxx, xxx
+  //first get type: dynamic (#), inline (#xxx), ajax (xxx)
+  //if only contains #, then type equals dynamic
+  //if contains # at the begining and is larger than 1 char, then type equals inline
+  //if doesnt start with #, the ajax.
+
+  Ideas:
+  Pure HTML
+  Multiple Modals
+  Different effects (maybe css magictime or greensock)
+  Ability to toggle all console.logs(create a function and output the consoles in there) for dev mode.
+
 */
 
 (function ($) {
     $.fn.xModal = function (options) {
 
-        var settings = $.extend({
-            width: "75%"
-        }, options);
+      var $mMarkup = $('<div class="modal-wrapper"><div><div></div></div></div>'),
+          $mOuterWrapper = $mMarkup,
+          $mInnerWrapper = $mMarkup.find('>*'),
+          $mContentContainer = $mMarkup.find('>*>*');
 
-        var $this = this,
-            $modal = $this.attr('href'),
-            $mC = $($modal).find('>*'),
-            $mCH = $mC.height();
+      var settings = $.extend({
+          width: "75%",
+          headline: "",
+          description: "",
+          href:""
+      }, options);
 
-        this.off('click.xModal').on('click.xModal', function (e) {
-            e.preventDefault();
 
-            if (!$modal.indexOf("#")) {
-                //Inline Modal Code Goes Here
-                $mC.find('.closeModal').remove();
-                $('<div class="closeModal icon-close"></div>').prependTo($mC);
-                $mC.width(settings.width);
-                $mC.height($mCH);
-                $mC.css({
-                  'margin-top' : -($mCH/2) + 'px'
-                });
-                $($modal).addClass('active').addClass('puffIn');
-            } else {
-                //External Modal Code Goes Here
+      function bindEvents(){
+        var closer = function(e){
+          if (e) {
+              console.log('event:',e);
+          } else {
+              console.log("this didn't come from an event!");
+          }
+
+          $($mMarkup).removeClass('puffIn').addClass('puffOut');
+          setTimeout(function () {
+              $($mMarkup).removeClass('active').removeClass('puffOut');
+              $mContentContainer.empty();
+              $($mMarkup).remove();
+          }, 500);
+
+          //unbind the keyup event
+          $(document).off('keyup.xModalEscape');
+        }
+
+        $(document).on('keyup.xModalEscape', function (e) {
+          console.log('e.which:', e.which);
+            if (e.which == '27') {
+              console.log('you hit escape');
+              closer(e);
             }
-
-            $(document).off('click', '.closeModal').on('click', '.closeModal', function () {
-                $($modal).removeClass('puffIn').addClass('puffOut');
-                setTimeout(function () {
-                    $($modal).removeClass('active').removeClass('puffOut');
-                }, 500);
-            });
-
         });
 
-        return this;
+        $(document).off('click.xModalClose', '.closeModal').on('click.xModalClose', '.closeModal', function () {
+          console.log('you clicked the close icon');
+          closer();
+        });
+      }
+
+      function ajaxService(path, callback){
+        $.ajax({
+          url: path,
+          success: function (data) {
+            console.log('success');
+            callback(data);
+          },
+          error: function (err) {
+            console.log('error');
+            //callback(err);
+            callback($('<div>ERROR</div>'));
+          }
+        });
+      }
+
+
+      if(!this.selector) {
+        console.log('this is not a selector.');
+
+        var $mContent = $('<div/>');
+
+        //inject content here
+        if(settings.href){
+            console.log('you gotta path!', settings.href);
+            ajaxService(settings.href, function(data){
+              $(data).prependTo($mContentContainer);
+            });
+        }
+        if(settings.headline){
+            $("<h1>" + settings.headline + "</h1>").appendTo($mContent);
+        }
+        if(settings.description){
+            $("<p>" + settings.description + "</p>").appendTo($mContent);
+        }
+
+        $mContent.prependTo($mContentContainer);
+        $mMarkup.appendTo('body');
+
+        var $mCH = $mContentContainer.height();
+
+        $mInnerWrapper.find('.closeModal').remove();
+        $('<a class="closeModal icon-close"></a>').prependTo($mInnerWrapper);
+        $mInnerWrapper.width(settings.width);
+        $mInnerWrapper.height($mCH);
+        $mInnerWrapper.css({
+          'margin-top' : -($mCH/2) + 'px'
+        });
+
+        $($mMarkup).addClass('active').addClass('puffIn');
+
+        bindEvents();
+        return;
+      }
+
+      this.off('click.xModal').on('click.xModal', function (e) {
+          e.preventDefault();
+          var $this = $(this),
+              $modal = $this.attr('href');
+
+          if (!$modal.indexOf("#")) {
+              //Open an inline modal on the page
+              console.log('contains a #');
+
+              var $mInlineContent = $($modal);
+              $mInlineContent.clone().appendTo($mContentContainer);
+
+              if($modal.length == 1){
+                //Insert the data into the modal only
+                if(settings.headline){
+                    $("<h1>" + settings.headline + "</h1>").appendTo($mContentContainer);
+                }
+                if(settings.description){
+                    $("<p>" + settings.description + "</p>").appendTo($mContentContainer);
+                }
+              }
+
+          } else {
+              //External Modal Code Goes Here
+              ajaxService($modal, function(data){
+                $(data).prependTo($mContentContainer);
+              });
+          }
+
+          //Finally, add the modal to the dom, calculate the height, show it and bind the events!
+          $mMarkup.appendTo('body');
+
+          var $mCH = $mContentContainer.height();
+
+          $mInnerWrapper.find('.closeModal').remove();
+          $('<a class="closeModal icon-close"></a>').prependTo($mInnerWrapper);
+          $mInnerWrapper.width(settings.width);
+          $mInnerWrapper.height($mCH);
+          $mInnerWrapper.css({
+            'margin-top' : -($mCH/2) + 'px'
+          });
+
+          $($mMarkup).addClass('active').addClass('puffIn');
+
+          bindEvents();
+
+      });
+
+      return this;
     };
 }(jQuery));

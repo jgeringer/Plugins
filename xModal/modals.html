@@ -7,23 +7,31 @@
 </head>
 <body>
 
-    <a href="#xModal-Inline" class="openModal">Open Modal</a>
+    <a class="openModal" href="#xModal-Inline">Open Inline Modal</a><br />
+    <a class="openModal" href="ajax.html">Ajax Modal</a><br />
+    <a class="openModalHeadline1" href="#">Open Dynamic Modal 1</a><br />
+    <a class="openModalHeadline2" href="#">Open Dynamic Modal 2</a><br />
 
-    <div id="xModal-Inline" class="modal-wrapper">
-        <div class="modal-container">
-            <div class="modal-inner-container">
-                <p class="center">Modal Content</p>
-            </div>
-        </div>
+    <div id="xModal-Inline">
+        <p class="center">Inline Modal Content</p>
     </div>
 
     <script>
     $(function(){
       $('.openModal').xModal({ width : "50%" });
+      $('.openModalHeadline1').xModal({ headline:"Test Headline 1"});
+      $('.openModalHeadline2').xModal({ headline:"Test Headline 2", description:"Description Test 2" });
+      //$('.openModalHeadline2').xModal();
+
+
+      //open one via Code:
+
+
+
     });
     </script>
 
-    <script src="jquery.xmodal.min.js"></script>
+    <script src="jquery.xmodal.js"></script>
 
 </body>
 </html>
