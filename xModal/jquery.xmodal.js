@@ -1,14 +1,15 @@
-﻿/*
+﻿/* global jQuery */
+/*
 xModal Plugin: By Joe Geringer (Nansen)
 
 Example:
 
 JS:
 $('.openModal').xModal({ width : "50%" });
-$(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html" });
-$(window).xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html", effect:"vanish" });
-$(window).xModal({ html : "<p>In a Paragraph</p>" });
-$(window).xModal({ img : "http://lorempixel.com/output/technics-q-c-640-480-2.jpg" });
+$.xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html" });
+$.xModal({ headline:"Headline", description:"Description", width:"25%", href:"ajax.html", effect:"vanish" });
+$.xModal({ html : "<p>In a Paragraph</p>" });
+$.xModal({ img : "http://lorempixel.com/output/technics-q-c-640-480-2.jpg" });
 
 HTML:
 <a href="#xModal-Inline" class="openModal">Open Modal</a>
@@ -46,7 +47,6 @@ IMG:
     $.fn.xModal = function (options) {
 
       var $mMarkup = $('<div class="modal-wrapper"><div><div></div></div></div>'),
-          $mOuterWrapper = $mMarkup,
           $mInnerWrapper = $mMarkup.find('>*'),
           $mContentContainer = $mMarkup.find('>*>*');
 
@@ -237,4 +237,11 @@ IMG:
 
       return this;
     };
+	
+	jQuery.extend({
+		xModal: function(obj){
+			$(window).xModal(obj);
+		}
+	});
+	
 }(jQuery));
